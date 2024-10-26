@@ -16,29 +16,17 @@ class GetDetailsThreadUseCase {
   }
 
   async execute(useCaseThreadId) {
-    await this._threadRepository.verifyThreadAvailabillity(useCaseThreadId);
+    // verifikasi ketersediaan thread
+    await this._threadRepository.verifyThreadAvailability(useCaseThreadId);
 
-    const threadFromDb = await this._getThreadById(useCaseThreadId);
-    const thread = await this._createThreadDetails(threadFromDb);
-
-    const commentsInThread = await this._getCommentsByThreadId(thread.id);
-    for (const commentData of commentsInThread) {
-      const commentDetails = await this._createCommentDetails(commentData);
-      thread.comments.push(commentDetails);
-    }
-
-    return thread;
-  }
-
-  async _getThreadById(threadId) {
-    return this._threadRepository.getThreadById(threadId);
-  }
-
-  async _createThreadDetails(threadFromDb) {
+    // get thread
+    const threadFromDb = await this._threadRepository.getThreadById(
+      useCaseThreadId
+    );
     const { username: threadUsername } = await this._userRepository.getUserById(
       threadFromDb.user_id
     );
-    return new ThreadDetails({
+    const thread = new ThreadDetails({
       id: threadFromDb.id,
       title: threadFromDb.title,
       body: threadFromDb.body,
@@ -46,48 +34,50 @@ class GetDetailsThreadUseCase {
       username: threadUsername,
       comments: [],
     });
-  }
 
-  async _getCommentsByThreadId(threadId) {
-    return this._commentRepository.getCommentByThreadId(threadId);
-  }
+    // get comments by thread
+    const commentsInThread = await this._commentRepository.getCommentByThreadId(
+      thread.id
+    );
 
-  async _createCommentDetails(commentData) {
-    const { username: commentUsername } =
-      await this._userRepository.getUserById(commentData.user_id);
-    const commentDetails = new CommentDetails({
-      id: commentData.id,
-      content: commentData.content,
-      date: commentData.created_at.toString(),
-      username: commentUsername,
-      replies: [],
-    });
+    // get comment replies by comment
+    if (commentsInThread.length > 0) {
+      for (const commentData of commentsInThread) {
+        const { username: commentUsername } =
+          await this._userRepository.getUserById(commentData.user_id);
+        const commentDetails = new CommentDetails({
+          id: commentData.id,
+          content: commentData.content,
+          date: commentData.created_at.toString(),
+          username: commentUsername,
+          replies: [],
+        });
 
-    const repliesInComment = await this._getRepliesByCommentId(commentData.id);
-    for (const replyData of repliesInComment) {
-      const commentReplyDetails = await this._createCommentReplyDetails(
-        replyData
-      );
-      commentDetails.replies.push(commentReplyDetails);
+        const repliesInComment =
+          await this._commentReplyRepository.getCommentReplyByCommentId(
+            commentData.id
+          );
+
+        if (repliesInComment.length > 0) {
+          for (const replyData of repliesInComment) {
+            const { username: replyUsername } =
+              await this._userRepository.getUserById(replyData.user_id);
+            const commentReplyDetails = new CommentReplyDetails({
+              id: replyData.id,
+              content: replyData.content,
+              date: replyData.created_at.toString(),
+              username: replyUsername,
+            });
+
+            commentDetails.replies.push(commentReplyDetails);
+          }
+        }
+
+        thread.comments.push(commentDetails);
+      }
     }
 
-    return commentDetails;
-  }
-
-  async _getRepliesByCommentId(commentId) {
-    return this._commentReplyRepository.getCommentReplyByCommentId(commentId);
-  }
-
-  async _createCommentReplyDetails(replyData) {
-    const { username: replyUsername } = await this._userRepository.getUserById(
-      replyData.user_id
-    );
-    return new CommentReplyDetails({
-      id: replyData.id,
-      content: replyData.content,
-      date: replyData.created_at.toString(),
-      username: replyUsername,
-    });
+    return thread;
   }
 }
 
