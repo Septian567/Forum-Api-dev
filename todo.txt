@@ -1,2 +1,0 @@
-1. pindahkan pengecekan ada tidaknya komentar dari CommentRepositoryPostgres ke fungsi verifyCommentAvailabilty -- success
-2. Pindahkan pesan **komentar telah di hapus** pada fungsi getCommentById dan getCommentByThreadId
