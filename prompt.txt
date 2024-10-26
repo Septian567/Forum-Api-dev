@@ -1,0 +1,33 @@
+saya mempunyai beberapa file js dan ingin membuat api yang menerapkan clean architecture
+berikut ini lokasi file saya
+
+src/Domains/comments/CommentRepository.js
+src/Infrastructures/repository/CommentRepositoryPostgres.js
+src/Applications/use_case/comments/AddCommentUseCase.js
+
+saya akan masukan file saya nanti
+
+saya ingin mengorkestrasikan fungsi verifyCommentAvalability ke use case supaya fungsi verifyCommentAvalability tidak perlu di panggil di getCommentByid.
+
+lakukan perubahan pada file CommentRepository.js dan AddCommentUseCase.js untuk melakukan orkestrasi itu. juga tampilkan perubahan kode CommentRepositoryPostgres.js agar kode dapat berjalan normal kembali
+
+saya ingin pemanggilan fungsi verifyCommentAvalability dilakukan di use case dan tidak dipanggil di fungsi getCommentById. sehingga pada fungsi getCommentById tidak perlu memanggil fungsi verifyCommentAvalability lagi karena sudah dipanggil di use case
+
+skenario 1
+1. gabungkan comment use case jadi 1
+2. sesuaikan handler, sesuaikan container
+3. orkestrasikan fungsi verifyCommentAvailabilty agar di panggil di use case (get comment Use case)
+
+psql -U maulana -d forum_api_test
+TRUNCATE TABLE table1, table2, table3 CASCADE;
+exit
+
+permasalahan ada di 
+
+ async verifyThreadAvailability(result) {
+    if (result.rowCount === 0) {
+      throw new NotFoundError("thread not found");
+    }
+  }
+
+  ganti result dengan threadId, sesuaikan yang lain
